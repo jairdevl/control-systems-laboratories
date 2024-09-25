@@ -29,9 +29,14 @@
         {% endif %}
         <br>
 
-        <div class="form-group">
+        <div class="form-group" style="position: relative;">
             <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
                 class="form-control" name="password" placeholder="&#128273 Contraseña" type="password" id="password" />
+
+            <button type="button" id="togglePassword"
+                style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
+                👀
+            </button>
         </div>
 
         {% if messager == 2 %}
@@ -66,4 +71,18 @@
     </center>
     {% endif %}
 
-    {% endblock %}
+</div>
+
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+        // Cambia el tipo de input entre 'password' y 'text'
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+    });
+</script>
+
+{% endblock %}
