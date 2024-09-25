@@ -78,7 +78,7 @@ def add_data():
         'hora_salida': request.form.get('hora_salida'),
         'observaciones': request.form.get('observaciones')
     }
-    
+
     try:
         # Get form data
         fecha_registro = datetime.now().strftime('%Y-%m-%d')
@@ -110,7 +110,7 @@ def add_data():
         cnx.commit()
         flash("Datos guardados exitosamente.", category='success')
         return redirect(url_for('index'))
-    
+
     except Exception as e:
         flash(f"Error: {e}", category='danger')
         return render_template('index.html', form_data=form_data)
@@ -212,53 +212,6 @@ def facereg():
             return render_template("camera.html")
 
     return render_template("camera.html")
-
-@app.route("/facesetup", methods=["GET", "POST"])
-@login_required
-def facesetup():
-    if request.method == "POST":
-        # Get and encode the image
-        encoded_image = (request.form.get("pic") + "==").encode('utf-8')
-        
-        cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT id FROM users WHERE id = %s", (session["user_id"],))
-        user = cursor.fetchone()
-        
-        # If the user is not found, displat an error message
-        if not user:
-            flash("⚠️ Usuario no encontrado. Por favor, inicia sesión nuevamente.", category="danger")
-            return render_template("face.html")
-        
-        id_ = user["id"]
-        compressed_data = zlib.compress(encoded_image, 9)
-        uncompressed_data = zlib.decompress(compressed_data)
-        decoded_data = b64decode(uncompressed_data)
-        
-        file_path = f'./static/face/{id_}.jpg'
-        
-
-        # Upload image for facial recognition
-        try:
-            with open(file_path, 'wb') as new_image_handle:
-                new_image_handle.write(decoded_data)
-        except IOError:
-            flash("❌ Error al guardar la imagen. Por favor, intenta nuevamente.", category="danger")
-            return render_template("face.html")
-        
-        try:
-            image = face_recognition.load_image_file(file_path)
-            face_encodings = face_recognition.face_encodings(image)
-            if not face_encodings:
-                os.remove(file_path)
-                flash("🔍 Imagen no clara. Asegúrate de que tu rostro esté bien iluminado y visible.", category="warning")
-                return render_template("face.html")
-        except Exception as e:
-            flash("⚠️ Error al procesar la imagen. Por favor, intenta nuevamente.")
-            return render_template("face.html")
-        
-        return redirect("/users")
-    
-    return render_template("face.html")
 
 @app.route("/admin")
 @login_required
@@ -367,6 +320,53 @@ def users():
     cursor.execute('SELECT * FROM users')
     data = cursor.fetchall()
     return render_template("/users.html", data=data)
+
+@app.route("/facesetup", methods=["GET", "POST"])
+@login_required
+def facesetup():
+    if request.method == "POST":
+        # Get and encode the image
+        encoded_image = (request.form.get("pic") + "==").encode('utf-8')
+        
+        cursor = cnx.cursor(dictionary=True)
+        cursor.execute("SELECT id FROM users WHERE id = %s", (session["user_id"],))
+        user = cursor.fetchone()
+        
+        # If the user is not found, displat an error message
+        if not user:
+            flash("⚠️ Usuario no encontrado. Por favor, inicia sesión nuevamente.", category="danger")
+            return render_template("face.html")
+        
+        id_ = user["id"]
+        compressed_data = zlib.compress(encoded_image, 9)
+        uncompressed_data = zlib.decompress(compressed_data)
+        decoded_data = b64decode(uncompressed_data)
+        
+        file_path = f'./static/face/{id_}.jpg'
+        
+
+        # Upload image for facial recognition
+        try:
+            with open(file_path, 'wb') as new_image_handle:
+                new_image_handle.write(decoded_data)
+        except IOError:
+            flash("❌ Error al guardar la imagen. Por favor, intenta nuevamente.", category="danger")
+            return render_template("face.html")
+        
+        try:
+            image = face_recognition.load_image_file(file_path)
+            face_encodings = face_recognition.face_encodings(image)
+            if not face_encodings:
+                os.remove(file_path)
+                flash("🔍 Imagen no clara. Asegúrate de que tu rostro esté bien iluminado y visible.", category="warning")
+                return render_template("face.html")
+        except Exception as e:
+            flash("⚠️ Error al procesar la imagen. Por favor, intenta nuevamente.")
+            return render_template("face.html")
+        
+        return redirect("/users")
+    
+    return render_template("face.html")
 
 @app.route("/restore/<id>", methods=['GET', 'POST'])
 @login_required
