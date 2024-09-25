@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="header d-flex justify-content-end" style="position: relative; left: -50px;">
+  <h5>
+    <a href="/admin">Volver</a>
+  </h5>
+</div>
+
+<script>
+  function right() {
+    document.getElementById("display").innerHTML = "✔";
+  }
+</script>
+
+<div class="mainregister"
+  style="position:relative; width: 400px; background:white; height: 500px; box-shadow: 0 12px 19px rgba(0, 0, 0, 0.2); border-radius: 40px; margin: auto; padding: 20px;">
+  <center>
+    <h3 style="margin-bottom: 30px;">Registrar</h3>
+  </center>
+
+  <form action="/register" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <input autocomplete="off" autofocus class="form-control" name="username" placeholder="👤 Nombre de Usuario"
+        type="text" style="border-radius:10px; width: 100%; padding: 10px; border: 1px solid #ccc;" />
+    </div>
+
+    {% if messager == 1 %}
+    <center>
+      <div class="alert alert-danger" role="alert"
+        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        &#9997 Por favor, ingrese su nombre de usuario.
+      </div>
+    </center>
+    {% endif %}
+    <br>
+
+    <div class="form-group">
+      <input class="form-control" name="password" placeholder="&#128273 Contraseña" type="password"
+        style="border-radius:10px; width: 100%; padding: 10px; border: 1px solid #ccc;" />
+    </div>
+
+    {% if messager == 2 %}
+    <center>
+      <div class="alert alert-danger" role="alert"
+        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        &#9997 Por favor, introduzca su contraseña.
+      </div>
+    </center>
+    {% endif %}
+    <br>
+
+    <div class="form-group">
+      <input class="form-control" name="confirmation" placeholder="&#128273 Confirmar Contraseña" type="password"
+        style="border-radius:10px; width: 100%; padding: 10px; border: 1px solid #ccc;" />
+    </div>
+
+    {% if messager == 4 %}
+    <center>
+      <div class="alert alert-danger" role="alert"
+        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        &#9997 Por favor, confirme su contraseña.
+      </div>
+    </center>
+    {% endif %}
+    <br>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="btn btn-success" type="submit" style="border-radius:40px; width: 100%; max-width: 400px;">
+        Registrar
+      </button>
+    </div>
+
+    {% if messager == 3 %}
+    <center>
+      <div class="alert alert-danger" role="alert"
+        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        &#10060 Las contraseñas no coinciden. Por favor, inténtelo de nuevo.
+      </div>
+    </center>
+    {% endif %}
+
+    {% if messager == 5 %}
+    <center>
+      <div class="alert alert-danger" role="alert"
+        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        &#9997 Nombre de usuario ya está en uso.
+      </div>
+    </center>
+    {% endif %}
+  </form>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
+{% for category, message in messages %}
+{% if category == 'success' %}
+<center>
+  <div class="alert alert-success" role="alert"
+    style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+    {{ message }}
+  </div>
+</center>
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% endblock %}
