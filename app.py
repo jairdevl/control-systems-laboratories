@@ -114,7 +114,7 @@ def add_data():
     except Exception as e:
         flash(f"Error: {e}", category='danger')
         return render_template('index.html', form_data=form_data)
-    
+ 
 @app.route("/login", methods=["GET", "POST"])
 def login_admin():
     # Clean session exising
@@ -151,6 +151,7 @@ def facereg():
         encoded_image = (request.form.get("pic") + "==").encode('utf-8')
         username = request.form.get("name")
         
+        # Create cursor database
         cursor = cnx.cursor(dictionary=True)
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
@@ -212,6 +213,11 @@ def facereg():
             return render_template("camera.html")
 
     return render_template("camera.html")
+
+@app.route("/goback")
+@login_required
+def goback():
+    return redirect("/admin")
 
 @app.route("/admin")
 @login_required
@@ -415,10 +421,10 @@ def deleteuser(id):
     flash("Usuario eliminado correctamente.")
     return redirect("/users")
 
-@app.route("/goback")
+@app.route("/report")
 @login_required
-def goback():
-    return redirect("/admin")
+def report():
+    pass
 
 @app.route("/logout")
 @login_required
