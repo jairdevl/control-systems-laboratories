@@ -26,9 +26,14 @@
         value="{{ username }}" />
     </div>
 
-    <div class="form-group">
-      <input autocomplete="off" class="form-control" name="password" placeholder="&#128273 Contraseña" type="password"
-        style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;" />
+    <div class="form-group" style="position: relative;">
+      <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
+        class="form-control" name="password" placeholder="&#128273 Contraseña" type="password" id="password" />
+
+      <button type="button" id="togglePassword"
+        style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
+        👀
+      </button>
     </div>
 
     {% if messager == 2 %}
@@ -41,9 +46,15 @@
     {% endif %}
     <br>
 
-    <div class="form-group">
-      <input class="form-control" name="confirmation" placeholder="&#128273 Confirmar Contraseña" type="password"
-        style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;" />
+    <div class="form-group" style="position: relative;">
+      <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
+        class="form-control" name="confirmation" placeholder="&#128273 confirmar Contraseña" type="password"
+        id="confirmation" />
+
+      <button type="button" id="toggleConfirmation"
+        style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
+        👀
+      </button>
     </div>
 
     {% if messager == 3 %}
@@ -62,5 +73,7 @@
       </button>
     </div>
   </form>
+
+  <script src="{{ url_for('static', filename='js/button.js') }}"></script>
 
   {% endblock %}

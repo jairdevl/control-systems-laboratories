@@ -73,16 +73,6 @@
 
 </div>
 
-<script>
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
-
-    togglePassword.addEventListener('click', function () {
-        // Cambia el tipo de input entre 'password' y 'text'
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-    });
-</script>
+<script src="{{ url_for('static', filename='js/button.js' )}}"></script>
 
 {% endblock %}
