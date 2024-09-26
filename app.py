@@ -83,7 +83,7 @@ def add_data():
         # Get form data
         fecha_registro = datetime.now().strftime('%Y-%m-%d')
         
-        # Form field validation
+        # Form fields validation
         if not all(form_data.values()):
             flash("Todos los campos son obligatorios.", category='warning')
             return render_template('index.html', form_data=form_data)
@@ -378,32 +378,39 @@ def facesetup():
 @login_required
 def restore(id):
     cursor = cnx.cursor()
+    
     # Get form restore
     if request.method == 'POST':
         new_password = request.form.get('password')
         confirmation = request.form.get('confirmation')
-        new_username = request.form.get('username')
-
-        # Validate data
-        if new_username:
-            cursor.execute("UPDATE users SET username = %s WHERE id = %s", (new_username, id))
         
-        if new_password:
-            if not new_password:
-                return render_template("restore.html", messager=2, id=id)
-            if new_password != confirmation:
-                return render_template("restore.html", messager=3, id=id)
-            
-            # Generate hash new password
+        # Initialize message variable
+        message_code = 0
+
+        # Get the current username from the database to keep it unchanged
+        cursor.execute("SELECT username FROM users WHERE id = %s", (id,))
+        user = cursor.fetchone()
+        current_username = user[0] if user else ''
+
+        # Validate passwords
+        if not new_password:
+            message_code = 2  # Password is empty
+        elif new_password != confirmation:
+            message_code = 3  # Passwords do not match
+        else:
+            # Generate hash for new password
             hash_password = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=8)
-            
-            # update password database
             cursor.execute("UPDATE users SET hash = %s WHERE id = %s", (hash_password, id))
 
-        cnx.commit()
-        flash("Datos actualizados exitosamente.")
-        return redirect("/users")
-    
+        # Commit changes only if there are no validation errors
+        if message_code == 0:
+            cnx.commit()
+            flash("Datos actualizados exitosamente.")
+            return redirect("/users")
+
+        # Render template with appropriate message and current username
+        return render_template("restore.html", messager=message_code, id=id, username=current_username)
+
     # Get data user form
     cursor.execute("SELECT username FROM users WHERE id = %s", (id,))
     user = cursor.fetchone()

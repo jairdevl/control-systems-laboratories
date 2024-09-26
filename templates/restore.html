@@ -2,78 +2,88 @@
 {% block body %}
 
 <div class="header d-flex justify-content-end" style="position: relative; left: -50px;">
-  <h5>
-    <a href="/users">Volver</a>
-  </h5>
+    <h5>
+        <a href="/users">Volver</a>
+    </h5>
 </div>
 
-<script>
-  function right() {
-    document.getElementById("display").innerHTML = "✔";
-  }
-</script>
-
 <div class="mainregister"
-  style="position:relative; width: 400px; background:white; height: 500px; box-shadow: 0 12px 19px rgba(0, 0, 0, 0.2); border-radius: 40px; margin: auto; padding: 20px;">
-  <center>
-    <h3 style="margin-bottom: 30px;">Actualizar Datos de Usuario</h3>
-  </center>
+    style="position: relative; width: 400px; background: white; height: 550px; box-shadow: 0 12px 19px rgba(0, 0, 0, 0.2); border-radius: 40px; margin: auto; padding: 20px;">
 
-  <form action="/restore/{{ id }}" method="post">
-    <div class="form-group">
-      <input autocomplete="off" autofocus class="form-control" name="username" placeholder="👤 Nombre de Usuario"
-        type="text" style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
-        value="{{ username }}" />
-    </div>
-
-    <div class="form-group" style="position: relative;">
-      <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
-        class="form-control" name="password" placeholder="&#128273 Contraseña" type="password" id="password" />
-
-      <button type="button" id="togglePassword"
-        style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
-        👀
-      </button>
-    </div>
-
-    {% if messager == 2 %}
     <center>
-      <div class="alert alert-danger" role="alert"
-        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
-        &#9997 Por favor, introduzca una contraseña.
-      </div>
+        <h3 style="margin-bottom: 30px; margin-top: 10px;">Actualizar Datos de Usuario</h3>
     </center>
-    {% endif %}
-    <br>
 
-    <div class="form-group" style="position: relative;">
-      <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
-        class="form-control" name="confirmation" placeholder="&#128273 confirmar Contraseña" type="password"
-        id="confirmation" />
+    <form action="/restore/{{ id }}" method="post">
 
-      <button type="button" id="toggleConfirmation"
-        style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
-        👀
-      </button>
-    </div>
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="👤 Nombre de Usuario"
+                type="text"
+                style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
+                value="{{ username }}" readonly />
+        </div>
 
-    {% if messager == 3 %}
-    <center>
-      <div class="alert alert-danger" role="alert"
-        style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
-        &#10060 Las contraseñas no coinciden. Por favor, inténtelo de nuevo.
-      </div>
-    </center>
-    {% endif %}
-    <br>
+        <br>
 
-    <div style="text-align: center; margin-top: 20px;">
-      <button class="btn btn-success" type="submit" style="border-radius: 40px; width: 100%; max-width: 400px;">
-        Actualizar
-      </button>
-    </div>
-  </form>
+        <div class="form-group" style="position: relative;">
+            <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
+                class="form-control" name="password" placeholder="&#128273 Contraseña" type="password" id="password" />
 
-  <script src="{{ url_for('static', filename='js/button.js') }}"></script>
+            <button type="button" id="togglePassword"
+                style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
+                👀
+            </button>
+        </div>
 
-  {% endblock %}
+        {% if messager == 2 %}
+        <center>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                style="border-radius: 10px; width: 100%; max-width: 400px; text-align:center;">
+                <button type='button' class='close' data-dismiss='alert' aria-label='Close' style='float:right'>
+                    <span aria-hidden='true'>&times;</span>
+                </button>
+                &#9997 Por favor, introduzca una contraseña.
+            </div>
+        </center>
+        {% endif %}
+
+        <br>
+
+        <div class="form-group" style="position: relative;">
+            <input style="border-radius: 10px; width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc;"
+                class="form-control" name="confirmation" placeholder="&#128273 Confirmar Contraseña" type="password"
+                id="confirmation" />
+
+            <button type="button" id="toggleConfirmation"
+                style="background: none; border: none; cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 20px;">
+                👀
+            </button>
+        </div>
+
+        {% if messager == 3 %}
+        <center>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                style="border-radius: 10px; width: 100%; max-width: 400px; text-align:center;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="float:right;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                &#10060 Las contraseñas no coinciden. Por favor, inténtelo de nuevo.
+            </div>
+        </center>
+        {% endif %}
+
+        <br>
+
+        <div style="text-align:center;">
+            <button class="btn btn-success" type="submit" style="border-radius:40px; width:100%; max-width:400px;">
+                Actualizar
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/button.js') }}"></script>
+
+{% endblock %}

@@ -8,11 +8,14 @@
 </div>
 
 <div class="mainlogin"
-    style="position:relative; width: 400px; background:white; height: 500px; box-shadow: 0 12px 19px rgba(0, 0, 0, 0.2); border-radius: 40px; margin: auto; padding: 20px;">
+    style="position: relative; width: 400px; background: white; height: 550px; box-shadow: 0 12px 19px rgba(0, 0, 0, 0.2); border-radius: 40px; margin: auto; padding: 20px;">
+    
     <center>
-        <h3 style="margin-bottom: 30px;">Iniciar Sesión</h3>
+        <h3 style="margin-top: 14px; margin-bottom: 30px;">Iniciar Sesión</h3>
     </center>
+    
     <form action="/login" method="post" enctype="multipart/form-data">
+        
         <div class="form-group">
             <input autocomplete="off" autofocus class="form-control" name="username" placeholder="👤 Nombre de Usuario"
                 type="text"
@@ -21,12 +24,16 @@
 
         {% if messager == 1 %}
         <center>
-            <div class="alert alert-danger" role="alert"
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
                 style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="float: right;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 &#9997 Por favor, ingrese su nombre de usuario.
             </div>
         </center>
         {% endif %}
+
         <br>
 
         <div class="form-group" style="position: relative;">
@@ -41,18 +48,19 @@
 
         {% if messager == 2 %}
         <center>
-            <div class="alert alert-danger" role="alert"
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
                 style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="close" style="float: right;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 &#9997 Por favor, introduzca su contraseña.
             </div>
         </center>
         {% endif %}
-        <br>
 
         <div style="text-align: center; margin-bottom: 20px; font-size: 15px; font-weight: bold;">
             O<br>
-            <a href="/facereg" style="text-decoration: none; color: #007bff;">Iniciar sesión con reconocimiento
-                facial</a>
+            <a href="/facereg" style="text-decoration: none; color: #007bff;">Iniciar sesión con reconocimiento facial</a>
         </div>
 
         <div style="text-align: center; margin-top: 20px;">
@@ -64,15 +72,17 @@
 
     {% if messager == 3 %}
     <center>
-        <div class="alert alert-danger" role="alert"
-            style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center;">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert"
+            style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center; margin-top: 18px;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="close" style="float: right;">
+                <span aria-hidden="true">&times;</span>
+            </button>
             &#10060 Nombre de usuario o contraseña incorrectos. Por favor, inténtelo de nuevo.
         </div>
     </center>
     {% endif %}
-
 </div>
 
-<script src="{{ url_for('static', filename='js/button.js' )}}"></script>
+<script src="{{ url_for('static', filename='js/button.js') }}"></script>
 
 {% endblock %}
