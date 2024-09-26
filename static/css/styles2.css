@@ -20,3 +20,10 @@
     text-decoration: underline;
     /* Subrayado al pasar el mouse */
 }
+table {
+    width: 100%;
+    /* Ajustar ancho de la tabla*/
+}
+.table-responsive {
+    width: 100%;
+  }
