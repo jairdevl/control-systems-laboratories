@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.config["MYSQL_HOST"] = "localhost"  
 app.config["MYSQL_USER"] = "root"        
 app.config["MYSQL_PASSWORD"] = "whoami"  
-app.config["MYSQL_DB"] = "mysql"         
+app.config["MYSQL_DB"] = "database"         
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 
 # Connection database
