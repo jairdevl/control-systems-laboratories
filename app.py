@@ -337,6 +337,7 @@ def facesetup():
         except Exception as e:
             flash("⚠️ Error al procesar la imagen. Por favor, intenta nuevamente.")
             return render_template("face.html")
+        flash("✅ Imagen capturada correctamente. ¡Listo para continuar!", category="success")
         return redirect("/users")
     return render_template("face.html")
 
