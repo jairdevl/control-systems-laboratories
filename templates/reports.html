@@ -5,58 +5,23 @@
 
 <div class="header d-flex justify-content-end">
     <h5>
-        <a href="/generate">Generar reporte por fecha</a>
         <a href="/admin">Volver</a>
     </h5>
-
 </div>
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    {{ message }}
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
-
-<div class="table-responsive">
-    <table class="table table-striped table-bordered bg-white">
-        <thead>
-            <tr>
-                <th><b>Ítem</b></th>
-                <th><b>Fecha</b></th>
-                <th><b>Aula</b></th>
-                <th><b>Nombres</b></th>
-                <th><b>Correo electrónico</b></th>
-                <th><b>Programa</b></th>
-                <th><b>Hora de ingreso</b></th>
-                <th><b>Hora de salida</b></th>
-                <th><b>Observaciones</b></th>
-                <th><b>Respuesta</b></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[4] }}</td>
-                <td>{{ row[5] }}</td>
-                <td>{{ row[6] }}</td>
-                <td>{{ row[7] }}</td>
-                <td>{{ row[8] }}</td>
-                <td>{{ row[9] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container mt-3">
+    <h2 style="margin-bottom: 20px;"> Generar Reporte por Fecha</h2>
+    <form action="{{ url_for('generate') }}" method="post">
+        <div class="form-group">
+            <label for="start_date">Fecha de inicio</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_data">Fecha de fin</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <button type="submit" class="btn btn-secundary">Generar reporte</button>
+    </form>
 </div>
 
 {% endblock %}

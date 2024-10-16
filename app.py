@@ -207,9 +207,9 @@ def admin_data():
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
 
-@app.route("/reports", methods=['GET', 'POST'])
+@app.route("/generate", methods=['GET', 'POST'])
 @login_required
-def reports():
+def generate():
     cursor = cnx.cursor()
     # Select table database
     if request.method == 'POST':
@@ -219,13 +219,12 @@ def reports():
     else:
         cursor.execute('SELECT * FROM control_aulas_sistemas')
     data = cursor.fetchall()
-    return render_template("/reports.html", data = data)
+    return render_template("/generate.html", data = data)
 
-@app.route("/generate", methods=['GET', 'POST'])
+@app.route("/reports", methods=['GET', 'POST'])
 @login_required
-def generate():
-    return render_template("/generate.html")
-
+def reports():
+    return render_template("/reports.html")
 
 @app.route("/edit/<id>")
 @login_required
