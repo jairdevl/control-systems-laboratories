@@ -4,9 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
 from base64 import b64decode
-from openpyxl import Workbook
 import face_recognition
-from io import BytesIO
 import mysql.connector
 import secrets
 import zlib
@@ -208,66 +206,6 @@ def admin_data():
     cursor.execute('SELECT * FROM control_aulas_sistemas')
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
-
-@app.route("/generate", methods=['GET', 'POST'])
-@login_required
-def generate():
-    cursor = cnx.cursor()
-    if request.method == 'POST':
-        start_date = request.form['start_date']
-        end_date = request.form["end_date"]
-        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_date, end_date))
-    else:
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
-    data = cursor.fetchall()
-    return render_template("/generate.html", data=data)
-
-@app.route("/reports", methods=['GET'])
-@login_required
-def reports():
-    return render_template("/reports.html")
-
-@app.route("/download")
-@login_required
-def download():
-    cursor = cnx.cursor()
-    
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    
-    if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_date, end_date))
-    else:
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
-    
-    data = cursor.fetchall()
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Reporte"
-
-    headers = ["Ítem", "Fecha", "Aula", "Nombres", "Correo electrónico", "Programa", 
-               "Hora de ingreso", "Hora de salida", "Observaciones", "Respuesta"]
-    ws.append(headers)
-
-    for row in data:
-        ws.append(row)
-
-    excel_file = BytesIO()
-    wb.save(excel_file)
-    excel_file.seek(0)
-
-    if start_date and end_date:
-        filename = f'reporte_{start_date.strftime("%Y-%m-%d")}_{end_date.strftime("%Y-%m-%d")}.xlsx'
-    else:
-        filename = 'reporte_completo.xlsx'
-
-    return send_file(excel_file,
-                     download_name=filename,
-                     as_attachment=True,
-                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 @app.route("/edit/<id>")
 @login_required
