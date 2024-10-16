@@ -5,6 +5,7 @@
 
 <div class="header d-flex justify-content-end">
     <h5>
+        <a href="/generate">Generar reporte por fecha</a>
         <a href="/admin">Volver</a>
     </h5>
 
@@ -31,15 +32,27 @@
                 <th><b>Fecha</b></th>
                 <th><b>Aula</b></th>
                 <th><b>Nombres</b></th>
+                <th><b>Correo electrónico</b></th>
+                <th><b>Programa</b></th>
+                <th><b>Hora de ingreso</b></th>
+                <th><b>Hora de salida</b></th>
+                <th><b>Observaciones</b></th>
+                <th><b>Respuesta</b></th>
             </tr>
         </thead>
         <tbody>
-            {% for data in data %}
+            {% for row in data %}
             <tr>
-                <td>{{ data.0 }}</td>
-                <td>{{ data.1 }}</td>
-                <td>{{ data.2 }}</td>
-                <td>{{ data.3 }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
+                <td>{{ row[9] }}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -207,14 +207,25 @@ def admin_data():
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
 
-@app.route("/reports")
+@app.route("/reports", methods=['GET', 'POST'])
 @login_required
 def reports():
     cursor = cnx.cursor()
     # Select table database
-    cursor.execute('SELECT *FROM control_aulas_sistemas')
+    if request.method == 'POST':
+        start_date = request.form['start_date']
+        end_date = request.form["end_date"]
+        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_date, end_date))
+    else:
+        cursor.execute('SELECT * FROM control_aulas_sistemas')
     data = cursor.fetchall()
     return render_template("/reports.html", data = data)
+
+@app.route("/generate", methods=['GET', 'POST'])
+@login_required
+def generate():
+    return render_template("/generate.html")
+
 
 @app.route("/edit/<id>")
 @login_required
