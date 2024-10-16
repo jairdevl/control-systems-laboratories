@@ -207,6 +207,15 @@ def admin_data():
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
 
+@app.route("/reports")
+@login_required
+def reports():
+    cursor = cnx.cursor()
+    # Select table database
+    cursor.execute('SELECT *FROM control_aulas_sistemas')
+    data = cursor.fetchall()
+    return render_template("/reports.html", data = data)
+
 @app.route("/edit/<id>")
 @login_required
 def get_data(id):
