@@ -5,6 +5,7 @@
 
 <div class="header d-flex justify-content-end">
     <h5>
+        <a href="{{ url_for('download', start_date=request.form.get('start_date'), end_date=request.form.get('end_date')) }}">Descargar</a>
         <a href="/reports">Volver</a>
     </h5>
 </div>
