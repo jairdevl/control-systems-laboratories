@@ -387,6 +387,11 @@ def deleteuser(id):
     flash("Usuario eliminado correctamente.")
     return redirect("/users")
 
+@app.route("/reports", methods=['GET'])
+@login_required
+def reports():
+    return render_template("/reports.html")
+
 @app.route("/logout")
 @login_required
 def logout():
