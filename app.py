@@ -400,7 +400,6 @@ def generate():
     cursor = cnx.cursor()
      # Check if the request method is POST
     if request.method == 'POST':
-        # Get start date and end date
         start_end = request.form['start_date']
         end_date = request.form['end_date']
         cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_end, end_date))
