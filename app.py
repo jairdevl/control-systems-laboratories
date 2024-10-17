@@ -390,18 +390,24 @@ def deleteuser(id):
 @app.route("/reports", methods=['GET'])
 @login_required
 def reports():
+    # Render template reports
     return render_template("/reports.html")
 
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required
-def generate(): 
+def generate():
+    # Create cursor database 
     cursor = cnx.cursor()
+     # Check if the request method is POST
     if request.method == 'POST':
+        # Get start date and end date
         start_end = request.form['start_date']
         end_date = request.form['end_date']
         cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_end, end_date))
     else:
+        # If the request method is GET retrieve all records from the table
         cursor.execute('SELECT * FROM control_aulas_sistemas')
+    # Get results store in date
     data = cursor.fetchall()
     return render_template("/generate.html", data = data)
 
