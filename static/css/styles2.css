@@ -1,28 +1,20 @@
 .header {
     background-color: #3b5998;
-    /* Color azul de Facebook */
     color: white;
-    /* Color del texto */
     padding: 10px;
-    /* Espaciado interno */
 }
 
 .header a {
     color: white;
-    /* Color de los enlaces */
     text-decoration: none;
-    /* Sin subrayado */
     margin-left: 15px;
-    /* Espaciado entre enlaces */
 }
 
 .header a:hover {
     text-decoration: underline;
-    /* Subrayado al pasar el mouse */
 }
 table {
     width: 100%;
-    /* Ajustar ancho de la tabla*/
 }
 .table-responsive {
     width: 100%;
