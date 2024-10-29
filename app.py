@@ -310,7 +310,7 @@ def generate():
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required
 def generate():
-    # Create cursor database 
+    # Create database cursor
     cursor = cnx.cursor()
     
     # Check if the request method is POST
@@ -318,7 +318,7 @@ def generate():
         start_date = request.form['start_date']
         end_date = request.form['end_date']
         
-        # Store filter dates in session for download route
+        # Store filtered dates in session for download route
         session['start_date'] = start_date
         session['end_date'] = end_date
         
@@ -327,26 +327,35 @@ def generate():
             (start_date, end_date)
         )
     else:
-        # If the request method is GET retrieve all records from the table
+        # If the request method is GET, retrieve all records from the table
         cursor.execute('SELECT * FROM control_aulas_sistemas')
         
         # Clear filter dates from session
         session.pop('start_date', None)
         session.pop('end_date', None)
         
-    # Get results store in date
+    # Get results and store them in data
     data = cursor.fetchall()
     return render_template("/generate.html", data=data)
 
 @app.route("/download")
 @login_required
 def download():
-    # Create cursor database
+    # Create database cursor
     cursor = cnx.cursor()
     
-    # Execute query to get all records
-    cursor.execute('SELECT * FROM control_aulas_sistemas')
+    # Retrieve the dates stored in the session
+    start_date = session.get('start_date')
+    end_date = session.get('end_date')
     
+    if start_date and end_date:
+        cursor.execute(
+            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s',
+            (start_date, end_date)
+        )
+    else:
+        cursor.execute('SELECT * FROM control_aulas_sistemas')
+
     # Get results
     data = cursor.fetchall()
     
@@ -364,6 +373,10 @@ def download():
     # Format date columns if needed
     df['Fecha'] = pd.to_datetime(df['Fecha']).dt.strftime('%Y-%m-%d')
     
+    # Format hours correctly (assuming they are in 24-hour format)
+    df['Hora de ingreso'] = pd.to_datetime(df['Hora de ingreso'], unit='s').dt.strftime('%H:%M')
+    df['Hora de salida'] = pd.to_datetime(df['Hora de salida'], unit='s').dt.strftime('%H:%M')
+    
     # Create Excel file in memory
     output = BytesIO()
     
@@ -376,7 +389,7 @@ def download():
         workbook = writer.book
         worksheet = writer.sheets['Reporte']
         
-        # Add formats
+        # Add formats for header row
         header_format = workbook.add_format({
             'bold': True,
             'font_size': 12,
@@ -390,15 +403,15 @@ def download():
         for col_num, value in enumerate(df.columns.values):
             worksheet.write(0, col_num, value, header_format)
             
-        # Adjust columns width
+        # Adjust column widths
         for idx, col in enumerate(df.columns):
             max_length = max(
                 df[col].astype(str).apply(len).max(),
                 len(str(col))
-            ) + 2
+            ) + 2  # Add some padding
             worksheet.set_column(idx, idx, max_length)
             
-    # Reset pointer
+    # Reset pointer to the beginning of the BytesIO stream
     output.seek(0)
     
     # Generate filename with timestamp
