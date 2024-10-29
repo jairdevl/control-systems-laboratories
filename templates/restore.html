@@ -16,23 +16,11 @@
 
     <form action="/restore/{{ id }}" method="POST" enctype="multipart/form-data">
 
-        <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="👤 Nombre de usuario"
-                type="text"
-                style="border-radius: 10px; width: 100%; padding: 10px; border: 1px solid #ccc; font-size: 14px;">
+        <div class="form-group"> 
+            <p style="border-radius: 10px; width: 100%; padding: 12px; border: 1px solid #ccc; font-size: 14px;">
+                {{ username }}
+            </p>
         </div>
-
-        {% if messager == 1 %}
-        <center>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert"
-                style="border-radius: 10px; width: 100%; max-width: 400px; text-align: center; font-size: 14px;">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="float: right;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                &#9997 Por favor, ingrese su nombre de usuario.
-            </div>
-        </center>
-        {% endif %}
 
         <br>
 
