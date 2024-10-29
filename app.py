@@ -1,5 +1,5 @@
 # Import libraries
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
@@ -7,6 +7,7 @@ import mysql.connector
 from io import BytesIO
 import pandas as pd
 import secrets
+import io
 import re
 
 # New instace Flask
@@ -308,6 +309,22 @@ def generate():
     return render_template("/generate.html", data = data)
 """
 
+@app.route("/generate", methods=['GET', 'POST'])
+@login_required
+def generate():
+    # Create cursor database 
+    cursor = cnx.cursor()
+     # Check if the request method is POST
+    if request.method == 'POST':
+        start_end = request.form['start_date']
+        end_date = request.form['end_date']
+        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_end, end_date))
+    else:
+        # If the request method is GET retrieve all records from the table
+        cursor.execute('SELECT * FROM control_aulas_sistemas')
+    # Get results store in date
+    data = cursor.fetchall()
+    return render_template("/generate.html", data = data)
 
 @app.route("/logout")
 @login_required
