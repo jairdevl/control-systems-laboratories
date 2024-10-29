@@ -3,11 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
-import mysql.connector
-import secrets
-import pandas as pd
 from io import BytesIO
-from datetime import datetime
+import mysql.connector
+import pandas as pd
+import secrets
 import re
 
 # New instace Flask
