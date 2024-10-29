@@ -1,22 +1,26 @@
 .header {
     background-color: #3b5998;
+    text-align: center;
     color: white;
     padding: 10px;
-    width: 100%;
+    width: 100%; 
 }
 
 .header a {
     color: white;
     text-decoration: none;
-    margin-left: 15px;
+    margin: 0 15px; 
+    display: inline-block; 
 }
 
 .header a:hover {
     text-decoration: underline;
 }
+
 table {
     width: 100%;
 }
+
 .table-responsive {
     width: 100%;
-  }
+}
