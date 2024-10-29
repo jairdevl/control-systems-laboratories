@@ -3,8 +3,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
-from io import BytesIO
 import mysql.connector
+from io import BytesIO
 import pandas as pd
 import secrets
 import re
