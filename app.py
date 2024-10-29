@@ -412,7 +412,6 @@ def download():
         download_name=filename
     )
 
-
 @app.route("/logout")
 @login_required
 def logout():
