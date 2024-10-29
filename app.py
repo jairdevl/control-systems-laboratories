@@ -3,13 +3,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
-from base64 import b64decode
-import face_recognition
 import mysql.connector
 import secrets
-import zlib
 import re
-import os
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+from datetime import datetime
 
 # New instace Flask
 app = Flask(__name__)
@@ -132,67 +132,6 @@ def login_admin():
         return redirect("/admin") 
     return render_template("/login.html")
 
-@app.route("/facereg", methods=["GET", "POST"])
-def facereg():
-    # Clear login
-    session.clear()
-    if request.method == "POST":
-        encoded_image = (request.form.get("pic") + "==").encode('utf-8')
-        username = request.form.get("name")
-        # Create cursor database
-        cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-        # If the user is not found. Show error message
-        if not user:
-            flash("⚠️ Usuario no encontrado. Por favor, comuníquese con el admistrador.", category="warning")
-            return render_template("camera.html")
-        # Get the id of the found user
-        id_ = user['id']
-        compressed_data = zlib.compress(encoded_image, 9)
-        uncompressed_data = zlib.decompress(compressed_data)
-        decoded_data = b64decode(uncompressed_data)
-        dir_path = './static/face/unknown/'
-        file_path = os.path.join(dir_path, f'{id_}.jpg')
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        # Upload unknown images for facial recognition
-        try:
-            with open(file_path, 'wb') as new_image_handle:
-                new_image_handle.write(decoded_data)
-        except IOError:
-            flash("❌ Error al guardar la imagen. Por favor, intenta nuevamente.", category="danger")
-            return render_template("camera.html")
-        try:
-            registered_image = face_recognition.load_image_file(f'./static/face/{id_}.jpg')
-            registered_face_encodings = face_recognition.face_encodings(registered_image)
-            if not registered_face_encodings:
-                flash("🔍 Imagen no clara. Asegúrate de que tu rostro esté bien iluminado y visible.", category="warning")
-                return render_template("camera.html")
-            registered_face_encoding = registered_face_encodings[0]
-        except FileNotFoundError:
-            flash("❌ Usuario incorrecto. Por favor, vuelve a seleccionar tu nombre de usuario.", category="danger")
-            return render_template("camera.html")
-        try:
-            unknown_image = face_recognition.load_image_file(file_path)
-            unknown_face_encodings = face_recognition.face_encodings(unknown_image)
-            if not unknown_face_encodings:
-                flash("🔍 Imagen no clara. Asegúrate de que tu rostro esté bien iluminado y visible.", category="warning")
-                return render_template("camera.html")
-            unknown_face_encoding = unknown_face_encodings[0]
-        except FileNotFoundError:
-            flash("❌ Error al cargar la imagen. Asegúrate de que la imagen se haya guardado correctamente.", category="danger")
-            return render_template("camera.html")
-        # Compare face with a precese threshold
-        face_distances = face_recognition.face_distance([registered_face_encoding], unknown_face_encoding)
-        if len(face_distances) > 0 and face_distances[0] < 0.4:  
-            session["user_id"] = user["id"]
-            return redirect("/admin")
-        else:
-            flash("🚫 Rostro incorrecto. Acceso denegado.", category="danger")
-            return render_template("camera.html")
-    return render_template("camera.html")
-
 @app.route("/goback")
 @login_required
 def goback():
@@ -260,6 +199,7 @@ def delete(id):
     return redirect(url_for('admin_data'))
 
 @app.route("/register", methods=["GET", "POST"])
+@login_required
 def register():
     if request.method == "POST":
         # Get data user
@@ -299,46 +239,6 @@ def users():
     cursor.execute('SELECT * FROM users')
     data = cursor.fetchall()
     return render_template("/users.html", data=data)
-
-@app.route("/facesetup", methods=["GET", "POST"])
-@login_required
-def facesetup():
-    if request.method == "POST":
-        # Get and encode the image
-        encoded_image = (request.form.get("pic") + "==").encode('utf-8')
-        # Create cursor database
-        cursor = cnx.cursor(dictionary=True)
-        cursor.execute("SELECT id FROM users WHERE id = %s", (session["user_id"],))
-        user = cursor.fetchone()
-        # If the user is not found, displat an error message
-        if not user:
-            flash("⚠️ Usuario no encontrado. Por favor, inicia sesión nuevamente.", category="danger")
-            return render_template("face.html")
-        id_ = user["id"]
-        compressed_data = zlib.compress(encoded_image, 9)
-        uncompressed_data = zlib.decompress(compressed_data)
-        decoded_data = b64decode(uncompressed_data)
-        file_path = f'./static/face/{id_}.jpg'
-        # Upload image for facial recognition
-        try:
-            with open(file_path, 'wb') as new_image_handle:
-                new_image_handle.write(decoded_data)
-        except IOError:
-            flash("❌ Error al guardar la imagen. Por favor, intenta nuevamente.", category="danger")
-            return render_template("face.html")
-        try:
-            image = face_recognition.load_image_file(file_path)
-            face_encodings = face_recognition.face_encodings(image)
-            if not face_encodings:
-                os.remove(file_path)
-                flash("🔍 Imagen no clara. Asegúrate de que tu rostro esté bien iluminado y visible.", category="warning")
-                return render_template("face.html")
-        except Exception as e:
-            flash("⚠️ Error al procesar la imagen. Por favor, intenta nuevamente.")
-            return render_template("face.html")
-        flash("✅ Imagen capturada correctamente. ¡Listo para continuar!", category="success")
-        return redirect("/users")
-    return render_template("face.html")
 
 @app.route("/restore/<id>", methods=['GET', 'POST'])
 @login_required
@@ -391,7 +291,7 @@ def deleteuser(id):
 def reports():
     # Render template reports
     return render_template("/reports.html")
-
+"""
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required
 def generate():
@@ -408,6 +308,112 @@ def generate():
     # Get results store in date
     data = cursor.fetchall()
     return render_template("/generate.html", data = data)
+"""
+@app.route("/generate", methods=['GET', 'POST'])
+@login_required
+def generate():
+    # Create cursor database 
+    cursor = cnx.cursor()
+    
+    # Check if the request method is POST
+    if request.method == 'POST':
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        
+        # Store filter dates in session for download route
+        session['start_date'] = start_date
+        session['end_date'] = end_date
+        
+        cursor.execute(
+            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s',
+            (start_date, end_date)
+        )
+    else:
+        # If the request method is GET retrieve all records from the table
+        cursor.execute('SELECT * FROM control_aulas_sistemas')
+        
+        # Clear filter dates from session
+        session.pop('start_date', None)
+        session.pop('end_date', None)
+        
+    # Get results store in date
+    data = cursor.fetchall()
+    return render_template("/generate.html", data=data)
+
+@app.route("/download")
+@login_required
+def download():
+    # Create cursor database
+    cursor = cnx.cursor()
+    
+    # Execute query to get all records
+    cursor.execute('SELECT * FROM control_aulas_sistemas')
+    
+    # Get results
+    data = cursor.fetchall()
+    
+    # Define column names for the Excel file
+    columns = [
+        'Item', 'Fecha', 'Aula', 'Nombres', 
+        'Correo electrónico', 'Programa',
+        'Hora de ingreso', 'Hora de salida',
+        'Observaciones', 'Respuesta'
+    ]
+    
+    # Create DataFrame
+    df = pd.DataFrame(data, columns=columns)
+    
+    # Format date columns if needed
+    df['Fecha'] = pd.to_datetime(df['Fecha']).dt.strftime('%Y-%m-%d')
+    
+    # Create Excel file in memory
+    output = BytesIO()
+    
+    # Create ExcelWriter object with xlsxwriter engine
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # Write DataFrame to Excel
+        df.to_excel(writer, sheet_name='Reporte', index=False)
+        
+        # Get workbook and worksheet objects
+        workbook = writer.book
+        worksheet = writer.sheets['Reporte']
+        
+        # Add formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'font_size': 12,
+            'bg_color': '#4F81BD',
+            'font_color': 'white',
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        
+        # Format the header row
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+            
+        # Adjust columns width
+        for idx, col in enumerate(df.columns):
+            max_length = max(
+                df[col].astype(str).apply(len).max(),
+                len(str(col))
+            ) + 2
+            worksheet.set_column(idx, idx, max_length)
+            
+    # Reset pointer
+    output.seek(0)
+    
+    # Generate filename with timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'reporte_control_aulas_{timestamp}.xlsx'
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
 
 @app.route("/logout")
 @login_required
