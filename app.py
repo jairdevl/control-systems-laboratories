@@ -1,15 +1,14 @@
 # Import libraries
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
 import mysql.connector
 import secrets
-import re
-from flask import send_file
 import pandas as pd
 from io import BytesIO
 from datetime import datetime
+import re
 
 # New instace Flask
 app = Flask(__name__)
