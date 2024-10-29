@@ -311,19 +311,33 @@ def generate():
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required
 def generate():
-    # Create cursor database 
+    # Create a database cursor
     cursor = cnx.cursor()
-     # Check if the request method is POST
+    
+    # Check if the request method is POST
     if request.method == 'POST':
+        # Retrieve start and end dates from the form
         start_end = request.form['start_date']
         end_date = request.form['end_date']
-        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_end, end_date))
+        
+        # Store the selected dates in the session for later use
+        session['start_date'] = start_end
+        session['end_date'] = end_date
+        
+        # Execute a SQL query to select records within the specified date range
+        cursor.execute(
+            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', 
+            (start_end, end_date)
+        )
     else:
-        # If the request method is GET retrieve all records from the table
+        # If the request method is GET, retrieve all records from the table
         cursor.execute('SELECT * FROM control_aulas_sistemas')
-    # Get results store in date
+    
+    # Fetch all results from the executed query
     data = cursor.fetchall()
-    return render_template("/generate.html", data = data)
+    
+    # Render the generate.html template and pass the fetched data to it
+    return render_template("/generate.html", data=data)
 
 @app.route("/download")
 @login_required
@@ -331,18 +345,15 @@ def download():
     # Retrieve the dates stored in the session
     start_date = session.get('start_date')
     end_date = session.get('end_date')
-
-    # Create database cursor
+    
+    # Create database cursor and fetch data
     with cnx.cursor() as cursor:
-        if start_date and end_date:
-            cursor.execute(
-                "SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s",
-                (start_date, end_date)
-            )
-        else:
-            cursor.execute("SELECT * FROM control_aulas_sistemas")
-
-        # Get results
+        query = (
+            "SELECT * FROM control_aulas_sistemas "
+            "WHERE fecha_registro BETWEEN %s AND %s" if start_date and end_date 
+            else "SELECT * FROM control_aulas_sistemas"
+        )
+        cursor.execute(query, (start_date, end_date) if start_date and end_date else ())
         data = cursor.fetchall()
 
     # Define column names for the Excel file
@@ -352,36 +363,31 @@ def download():
         'Hora de ingreso', 'Hora de salida',
         'Observaciones', 'Respuesta'
     ]
-
+    
     # Create DataFrame
     df = pd.DataFrame(data, columns=columns)
 
-    # Format date columns if needed
+    # Format date column
     df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce').dt.strftime('%Y-%m-%d')
+    
+    # Ensure that the time columns are treated as strings directly from the database
+    df['Hora de ingreso'] = df['Hora de ingreso'].astype(str).str.strip()
+    df['Hora de salida'] = df['Hora de salida'].astype(str).str.strip()
 
-    # Handle time conversion with error checking
-    def safe_convert_time(time_series):
-        try:
-            return pd.to_datetime(time_series, unit='s').dt.strftime('%H:%M')
-        except Exception as e:
-            print(f"Error converting time: {e}")
-            return time_series  # Return original if conversion fails
-
-    df['Hora de ingreso'] = safe_convert_time(df['Hora de ingreso'])
-    df['Hora de salida'] = safe_convert_time(df['Hora de salida'])
+    # Remove any unwanted prefixes (like "0 days") by slicing the string if necessary
+    df['Hora de ingreso'] = df['Hora de ingreso'].str.replace(r'^\d+ days ', '', regex=True)
+    df['Hora de salida'] = df['Hora de salida'].str.replace(r'^\d+ days ', '', regex=True)
 
     # Create Excel file in memory
     output = BytesIO()
-
-    # Create ExcelWriter object with xlsxwriter engine
+    
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        # Write DataFrame to Excel
         df.to_excel(writer, sheet_name='Reporte', index=False)
-
+        
         # Get workbook and worksheet objects
         workbook = writer.book
         worksheet = writer.sheets['Reporte']
-
+        
         # Add formats for header row
         header_format = workbook.add_format({
             'bold': True,
@@ -391,17 +397,14 @@ def download():
             'align': 'center',
             'valign': 'vcenter'
         })
-
+        
         # Format the header row
-        for col_num, value in enumerate(df.columns.values):
+        for col_num, value in enumerate(df.columns):
             worksheet.write(0, col_num, value, header_format)
-
-        # Adjust column widths
+        
+        # Adjust column widths dynamically
         for idx, col in enumerate(df.columns):
-            max_length = max(
-                df[col].astype(str).apply(len).max(),
-                len(str(col))
-            ) + 2  # Add some padding
+            max_length = max(df[col].astype(str).map(len).max(), len(col)) + 2  # Add some padding
             worksheet.set_column(idx, idx, max_length)
 
     # Reset pointer to the beginning of the BytesIO stream
@@ -417,7 +420,7 @@ def download():
         as_attachment=True,
         download_name=filename
     )
-
+    
 @app.route("/logout")
 @login_required
 def logout():
