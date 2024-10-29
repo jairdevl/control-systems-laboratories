@@ -307,88 +307,105 @@ def generate():
     data = cursor.fetchall()
     return render_template("/generate.html", data = data)
 """
+
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required
 def generate():
     # Create database cursor
-    cursor = cnx.cursor()
-    
-    # Check if the request method is POST
-    if request.method == 'POST':
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
-        
-        # Store filtered dates in session for download route
-        session['start_date'] = start_date
-        session['end_date'] = end_date
-        
-        cursor.execute(
-            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s',
-            (start_date, end_date)
-        )
-    else:
-        # If the request method is GET, retrieve all records from the table
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
-        
-        # Clear filter dates from session
-        session.pop('start_date', None)
-        session.pop('end_date', None)
-        
-    # Get results and store them in data
-    data = cursor.fetchall()
+    with cnx.cursor() as cursor:
+        # Check if the request method is POST
+        if request.method == 'POST':
+            start_date = request.form['start_date']
+            end_date = request.form['end_date']
+
+            # Store filtered dates in session for download route
+            session['start_date'] = start_date
+            session['end_date'] = end_date
+
+            # Fetch data based on the selected date range
+            cursor.execute(
+                "SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s",
+                (start_date, end_date)
+            )
+        else:
+            # If the request method is GET, retrieve all records from the table
+            cursor.execute("SELECT * FROM control_aulas_sistemas")
+
+        # Get results and store them in data
+        data = cursor.fetchall()
+
     return render_template("/generate.html", data=data)
 
 @app.route("/download")
 @login_required
 def download():
-    # Create database cursor
-    cursor = cnx.cursor()
-    
     # Retrieve the dates stored in the session
     start_date = session.get('start_date')
     end_date = session.get('end_date')
-    
-    if start_date and end_date:
-        cursor.execute(
-            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s',
-            (start_date, end_date)
-        )
-    else:
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
 
-    # Get results
-    data = cursor.fetchall()
-    
+    # Create database cursor
+    with cnx.cursor() as cursor:
+        if start_date and end_date:
+            cursor.execute(
+                "SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s",
+                (start_date, end_date)
+            )
+        else:
+            cursor.execute("SELECT * FROM control_aulas_sistemas")
+
+        # Get results
+        data = cursor.fetchall()
+
     # Define column names for the Excel file
     columns = [
-        'Item', 'Fecha', 'Aula', 'Nombres', 
+        'Item', 'Fecha', 'Aula', 'Nombres',
         'Correo electrónico', 'Programa',
         'Hora de ingreso', 'Hora de salida',
         'Observaciones', 'Respuesta'
     ]
-    
+
     # Create DataFrame
     df = pd.DataFrame(data, columns=columns)
-    
+
     # Format date columns if needed
-    df['Fecha'] = pd.to_datetime(df['Fecha']).dt.strftime('%Y-%m-%d')
-    
-    # Format hours correctly (assuming they are in 24-hour format)
-    df['Hora de ingreso'] = pd.to_datetime(df['Hora de ingreso'], unit='s').dt.strftime('%H:%M')
-    df['Hora de salida'] = pd.to_datetime(df['Hora de salida'], unit='s').dt.strftime('%H:%M')
-    
+    df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce').dt.strftime('%Y-%m-%d')
+
+    # Check the raw data for hours before conversion
+    print("Raw Hora de ingreso:", df['Hora de ingreso'].tolist())
+    print("Raw Hora de salida:", df['Hora de salida'].tolist())
+
+    # Handle time conversion with error checking
+    def safe_convert_time(time_series):
+        # Check if the series contains valid timestamps
+        if time_series.isnull().all():
+            return time_series  # Return original if all values are null
+        
+        # Convert to datetime and handle errors
+        try:
+            return pd.to_datetime(time_series, unit='s', errors='coerce').dt.strftime('%H:%M')
+        except Exception as e:
+            print(f"Error converting time: {e}")
+            return time_series  # Return original if conversion fails
+
+    df['Hora de ingreso'] = safe_convert_time(df['Hora de ingreso'])
+    df['Hora de salida'] = safe_convert_time(df['Hora de salida'])
+
+    # Debugging output to check final DataFrame
+    print("Processed DataFrame:")
+    print(df)
+
     # Create Excel file in memory
     output = BytesIO()
-    
+
     # Create ExcelWriter object with xlsxwriter engine
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         # Write DataFrame to Excel
         df.to_excel(writer, sheet_name='Reporte', index=False)
-        
+
         # Get workbook and worksheet objects
         workbook = writer.book
         worksheet = writer.sheets['Reporte']
-        
+
         # Add formats for header row
         header_format = workbook.add_format({
             'bold': True,
@@ -398,11 +415,11 @@ def download():
             'align': 'center',
             'valign': 'vcenter'
         })
-        
+
         # Format the header row
         for col_num, value in enumerate(df.columns.values):
             worksheet.write(0, col_num, value, header_format)
-            
+
         # Adjust column widths
         for idx, col in enumerate(df.columns):
             max_length = max(
@@ -410,14 +427,14 @@ def download():
                 len(str(col))
             ) + 2  # Add some padding
             worksheet.set_column(idx, idx, max_length)
-            
+
     # Reset pointer to the beginning of the BytesIO stream
     output.seek(0)
-    
+
     # Generate filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'reporte_control_aulas_{timestamp}.xlsx'
-    
+
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
