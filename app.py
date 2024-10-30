@@ -133,6 +133,7 @@ def login_admin():
 @app.route("/goback")
 @login_required
 def goback():
+    # Redirect page admin
     return redirect("/admin")
 
 @app.route("/admin")
@@ -147,8 +148,10 @@ def admin_data():
 @app.route("/edit/<id>")
 @login_required
 def get_data(id):
+    # Create cursor database
     cursor = cnx.cursor()
     cursor.execute('SELECT * FROM control_aulas_sistemas WHERE id = %s',(id,))
+    # Get query result
     data = cursor.fetchall()
     return render_template("edit.html", id = data[0])
 
