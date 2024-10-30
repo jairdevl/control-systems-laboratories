@@ -79,15 +79,15 @@ def add_data():
     try:
         # Get form data
         fecha_registro = datetime.now().strftime('%Y-%m-%d')
-        # Form fields validation
+        # Form fields validation empty
         if not all(form_data.values()):
             flash("Todos los campos son obligatorios.", category='warning')
             return render_template('index.html', form_data=form_data)
         if not re.match(r"^[A-Za-z\s]+$", form_data['nombre_docente']):
             flash("El nombre del docente solo puede contener letras y espacios.", category='warning')
             return render_template('index.html', form_data=form_data)
-        if not re.match(r"^[^,\s]+@(gmail\.com|unicesmag\.edu\.co)$", form_data['correo_electronico']):
-            flash("Correo electrónico no válido. Debe ser un correo de Gmail o de la universidad.", category='warning')
+        if not re.match(r"^[^,\s]+@(unicesmag\.edu\.co)$", form_data['correo_electronico']):
+            flash("Correo electrónico no válido. Debe ser un correo institucional.", category='warning')
             return render_template('index.html', form_data=form_data)
         if form_data['hora_ingreso'] >= form_data['hora_salida']:
             flash("La hora de salida debe ser después de la hora de ingreso.", category='warning')
