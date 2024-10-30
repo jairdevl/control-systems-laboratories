@@ -1,5 +1,5 @@
 # Import libreries
-from flask import redirect, render_template, session
+from flask import redirect, session
 from functools import wraps
 
 # Route protected the login

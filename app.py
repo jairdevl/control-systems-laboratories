@@ -200,7 +200,6 @@ def delete(id):
     return redirect(url_for('admin_data'))
 
 @app.route("/register", methods=["GET", "POST"])
-@login_required
 def register():
     if request.method == "POST":
         # Get data user
@@ -292,24 +291,6 @@ def deleteuser(id):
 def reports():
     # Render template reports
     return render_template("/reports.html")
-"""
-@app.route("/generate", methods=['GET', 'POST'])
-@login_required
-def generate():
-    # Create cursor database 
-    cursor = cnx.cursor()
-     # Check if the request method is POST
-    if request.method == 'POST':
-        start_end = request.form['start_date']
-        end_date = request.form['end_date']
-        cursor.execute('SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', (start_end, end_date))
-    else:
-        # If the request method is GET retrieve all records from the table
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
-    # Get results store in date
-    data = cursor.fetchall()
-    return render_template("/generate.html", data = data)
-"""
 
 @app.route("/generate", methods=['GET', 'POST'])
 @login_required

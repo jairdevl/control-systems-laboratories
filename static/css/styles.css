@@ -14,6 +14,10 @@ label {
 .alert {
     font-weight: bold;
     font-size: 17px;
+    padding: 10px;
+    width: 110%;
+    margin-left: -60px;
+
 }
 
 table {
