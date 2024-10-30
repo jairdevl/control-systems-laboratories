@@ -184,6 +184,7 @@ def update_data(id):
                 respuesta_incidencias = %s
             WHERE id = %s
             """
+        # Run SQL query
         cursor.execute(query, (fecha_registro, identificador_aula, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones, respuesta_incidencias, id))
         cnx.commit()
         flash('Datos actualizados exitosamente.')
