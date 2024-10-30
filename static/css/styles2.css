@@ -1,0 +1,21 @@
+.header {
+    background-color: #3b5998;
+    color: white;
+    padding: 10px;
+}
+
+.header a {
+    color: white;
+    text-decoration: none;
+    margin-left: 15px;
+}
+
+.header a:hover {
+    text-decoration: underline;
+}
+table {
+    width: 100%;
+}
+.table-responsive {
+    width: 100%;
+  }
