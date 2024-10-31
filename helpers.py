@@ -4,11 +4,6 @@ from functools import wraps
 
 # Route protected the login
 def login_required(f):
-    """
-    Decorate routes to require login.
-
-    http://flask.pocoo.org/docs/1.0/patterns/viewdecorators/
-    """
     # Preserves orginal fuction information
     @wraps(f)  
     def decorated_function(*args, **kwargs):
