@@ -32,10 +32,10 @@ cnx = mysql.connector.connect(
 # Create table database
 cursor = cnx.cursor()
 query = """
-CREATE TABLE IF NOT EXISTS control_aulas_sistemas (
+CREATE TABLE IF NOT EXISTS control_laboratorios_sistemas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fecha_registro DATETIME,
-    identificador_aula VARCHAR(255),
+    identificador_laboratorio VARCHAR(255),
     nombre_docente VARCHAR(255),
     correo_electronico VARCHAR(255),
     programa VARCHAR(255),
@@ -68,7 +68,7 @@ def index():
 @app.route("/add_data", methods=['POST'])
 def add_data():
     form_data = {
-        'identificador_aula': request.form.get('identificador_aula'),
+        'identificador_laboratorio': request.form.get('identificador_laboratorio'),
         'nombre_docente': request.form.get('nombre_docente'),
         'correo_electronico': request.form.get('correo_electronico'),
         'programa': request.form.get('programa'),
@@ -95,7 +95,7 @@ def add_data():
         # Save data to database
         cursor = cnx.cursor()
         query = """
-        INSERT INTO control_aulas_sistemas (fecha_registro, identificador_aula, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones)
+        INSERT INTO control_laboratorios_sistemas (fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (fecha_registro, *form_data.values()))
@@ -141,7 +141,7 @@ def goback():
 def admin_data():
     cursor = cnx.cursor()
     # Select table database
-    cursor.execute('SELECT * FROM control_aulas_sistemas')
+    cursor.execute('SELECT * FROM control_laboratorios_sistemas')
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
 
@@ -150,7 +150,7 @@ def admin_data():
 def get_data(id):
     # Create cursor database
     cursor = cnx.cursor()
-    cursor.execute('SELECT * FROM control_aulas_sistemas WHERE id = %s',(id,))
+    cursor.execute('SELECT * FROM control_laboratorios_sistemas WHERE id = %s',(id,))
     # Get query result
     data = cursor.fetchall()
     return render_template("edit.html", id = data[0])
@@ -161,7 +161,7 @@ def update_data(id):
     if request.method == 'POST':
         # Get updated form data
         fecha_registro = request.form['fecha_registro']
-        identificador_aula = request.form['identificador_aula']
+        identificador_laboratorio = request.form['identificador_laboratorio']
         nombre_docente = request.form['nombre_docente']
         correo_electronico = request.form['correo_electronico']
         programa = request.form["programa"]
@@ -172,9 +172,9 @@ def update_data(id):
         # Update data in database
         cursor = cnx.cursor()
         query = """
-            UPDATE control_aulas_sistemas
+            UPDATE control_laboratorios_sistemas
             SET fecha_registro = %s,
-                identificador_aula = %s,
+                identificador_laboratorio = %s,
                 nombre_docente = %s,
                 correo_electronico = %s,
                 programa = %s,
@@ -195,7 +195,7 @@ def update_data(id):
 def delete(id):
     cursor = cnx.cursor()
     # Delete data form
-    cursor.execute('DELETE FROM control_aulas_sistemas WHERE id = {0}'.format(id))
+    cursor.execute('DELETE FROM control_laboratorios_sistemas WHERE id = {0}'.format(id))
     cnx.commit()
     flash("Datos eliminados correctamente.")
     return redirect(url_for('admin_data'))
@@ -309,12 +309,12 @@ def generate():
         session['end_date'] = end_date
         # Execute a SQL query to select records within the specified date range
         cursor.execute(
-            'SELECT * FROM control_aulas_sistemas WHERE fecha_registro BETWEEN %s AND %s', 
+            'SELECT * FROM control_laboratorios_sistemas WHERE fecha_registro BETWEEN %s AND %s', 
             (start_end, end_date)
         )
     else:
         # If the request method is GET, retrieve all records from the table
-        cursor.execute('SELECT * FROM control_aulas_sistemas')
+        cursor.execute('SELECT * FROM control_laboratorios_sistemas')
     # Fetch all results from the executed query
     data = cursor.fetchall()
     
@@ -330,15 +330,15 @@ def download():
     # Create database cursor and fetch data
     with cnx.cursor() as cursor:
         query = (
-            "SELECT * FROM control_aulas_sistemas "
+            "SELECT * FROM control_laboratorios_sistemas "
             "WHERE fecha_registro BETWEEN %s AND %s" if start_date and end_date 
-            else "SELECT * FROM control_aulas_sistemas"
+            else "SELECT * FROM control_laboratorios_sistemas"
         )
         cursor.execute(query, (start_date, end_date) if start_date and end_date else ())
         data = cursor.fetchall()
     # Define column names for the Excel file
     columns = [
-        'Item', 'Fecha', 'Aula', 'Nombres',
+        'Item', 'Fecha', 'Laboratorio', 'Nombres',
         'Correo electrónico', 'Programa',
         'Hora de ingreso', 'Hora de salida',
         'Observaciones', 'Respuesta'
@@ -380,7 +380,7 @@ def download():
     output.seek(0)
     # Generate filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = f'reporte_control_aulas_{timestamp}.xlsx'
+    filename = f'reporte_control_laboratorios_sistemas_{timestamp}.xlsx'
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
