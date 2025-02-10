@@ -22,9 +22,21 @@
         <div class="form-group">
             <label for="identificador_aula">Identificador de aula</label>
             <select name="identificador_aula" class="form-control" required>
-                <option value="" disabled {% if not form_data %}selected{% endif %}>Selecciona una aula</option>
-                {% for value in ["1", "2", "3", "4", "5", "6", "7", "8", "Mac", "Virtual", "Laboratorio Redes",
-                "Sistemas Operativos"] %}
+                <option value="" disabled {% if not form_data %}selected{% endif %}>Selecciona un laboratorio</option>
+                {% for value in [
+                "Laboratorio de Programación",
+                "Laboratorio de Análisis de Datos",
+                "Laboratorio de Programación y Simulación 1",
+                "Laboratorio de Competencias Digitales 1",
+                "Laboratorio de Programación Avanzada",
+                "Laboratorio de Competencias Digitales 2",
+                "Laboratorio de Programación y Simulación 2",
+                "Laboratorio de Competencias Digitales 3",
+                "Laboratorio Creación Digital 1",
+                "Laboratorio de Gestión Digital",
+                "Laboratorio de Redes",
+                "Laboratorio de Sistemas Operativos"
+                ] %}
                 <option value="{{ value }}" {% if form_data and form_data.identificador_aula==value %}selected{% endif
                     %}>{{ value }}</option>
                 {% endfor %}
