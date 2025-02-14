@@ -3,12 +3,12 @@
     ServerAdmin whoami@172.17.2.131
 
     # Configuración del proceso WSGI para la aplicación
-    WSGIDaemonProcess systems_laboratories_control python-home=/var/www/Systems-laboratories-control/venv python-path=/var/www/Systems-laboratories-control
-    WSGIProcessGroup systems_laboratories_control
-    WSGIScriptAlias / /var/www/Systems-laboratories-control/app.wsgi
+    WSGIDaemonProcess system_laboratory_control python-home=/var/www/system-laboratory-control/venv python-path=/var/www/system-laboratory-control
+    WSGIProcessGroup system_laboratory_control
+    WSGIScriptAlias / /var/www/system-laboratory-control/app.wsgi
 
     # Configuración del directorio de la aplicación
-    <Directory /var/www/Systems-laboratories-control>
+    <Directory /var/www/system-laboratory-control>
         # Permite el acceso a todos los usuarios
         Require all granted
         # Opcional: Configuración adicional para mejorar la seguridad y el rendimiento
@@ -17,8 +17,8 @@
     </Directory>
 
     # Configuración de los archivos de registro (logs)
-    ErrorLog ${APACHE_LOG_DIR}/systems-laboratories-control-error.log
-    CustomLog ${APACHE_LOG_DIR}/systems-laboratories-control-access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/system-laboratory-control-error.log
+    CustomLog ${APACHE_LOG_DIR}/system-laboratory-control-access.log combined
 
     # Opcional: Configuración adicional para mejorar el rendimiento y la seguridad
     <IfModule mod_deflate.c>
