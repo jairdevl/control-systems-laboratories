@@ -15,7 +15,7 @@ app = Flask(__name__)
 # Settings database
 app.config["MYSQL_HOST"] = "localhost"  
 app.config["MYSQL_USER"] = "root"        
-app.config["MYSQL_PASSWORD"] = "whoami"  
+app.config["MYSQL_PASSWORD"] = "fazt"  
 app.config["MYSQL_DB"] = "database"         
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 
@@ -185,7 +185,7 @@ def update_data(id):
             WHERE id = %s
             """
         # Run SQL query
-        cursor.execute(query, (fecha_registro, identificador_aula, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones, respuesta_incidencias, id))
+        cursor.execute(query, (fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones, respuesta_incidencias, id))
         cnx.commit()
         flash('Datos actualizados exitosamente.')
         return redirect(url_for('admin_data'))
