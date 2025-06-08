@@ -27,14 +27,13 @@ control-systems-laboratories/
 │   ├── static/         # CSS, JavaScript, and images
 │   ├── templates/      # HTML templates
 │   └── __init__.py     # Application factory
-├── config/             # Configuration files
-├── migrations/         # Database migrations
-├── tests/              # Unit and integration tests
-├── .env                # Environment variables (not tracked by git)
+├── static/             # CSS, JS, images
+├── templates/          # HTML templates (si no están en app/)
+├── .env                # Environment variables (no subir a git)
 ├── .gitignore          # Git ignore file
-├── config.py           # Configuration settings
 ├── requirements.txt    # Project dependencies
-└── run.py              # Application entry point
+├── Procfile            # Render start command
+└── app.py              # Application entry point
 ```
 
 ## 🛠️ Installation
@@ -50,8 +49,8 @@ control-systems-laboratories/
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/jairdevl/control-systems-laboratories.git
-cd control-systems-laboratories
+git clone https://github.com/jairdevl/control-systems-laboratories.git systems-laboratory-control
+cd systems-laboratory-control
 ```
 
 2. **Create and activate a virtual environment**
@@ -80,15 +79,6 @@ Create a `.env` file in the project root with the following variables:
 FLASK_APP=run.py
 FLASK_ENV=development
 SECRET_KEY=your_secret_key
-DATABASE_URI=sqlite:///app.db
-```
-
-5. **Initialize the database**
-
-```bash
-flask db init
-flask db migrate -m "Initial migration."
-flask db upgrade
 ```
 
 ## 🚀 Running the Application
@@ -96,14 +86,26 @@ flask db upgrade
 ### Development Server
 
 ```bash
-flask run
+python app.py
 ```
 
-The application will be available at `http://127.0.0.1:5000/`.
+### Despliegue en Render
 
-### Production Deployment
-
-For production environments, it's recommended to use a WSGI server like Gunicorn:
+1. Sube tu código a un repositorio en GitHub.
+2. Ve a [https://dashboard.render.com/](https://dashboard.render.com/) y crea un nuevo Web Service.
+3. Conecta tu repositorio y selecciona Python como entorno.
+4. Agrega las siguientes variables de entorno en Render:
+    - DB_HOST
+    - DB_PORT
+    - DB_NAME
+    - DB_USER
+    - DB_PASSWORD
+5. Asegúrate de tener un archivo `Procfile` con:
+    ```
+    web: gunicorn app:app
+    ```
+6. Render detectará cambios automáticamente con cada push a GitHub.
+7. Consulta los logs en Render si ocurre algún error.
 
 ```bash
 pip install gunicorn
