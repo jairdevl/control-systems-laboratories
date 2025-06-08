@@ -2,68 +2,29 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
-from dotenv import load_dotenv
 from datetime import datetime
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 from io import BytesIO
 import pandas as pd
 import secrets
 import re
 import os
 
-# Load environment variables
-load_dotenv()
-
-# New instace Flask
+# New instance Flask
 app = Flask(__name__)
 
-# Settings database
-app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")        
-app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
-app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
+# Direct configuration for PostgreSQL (Supabase)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 
-# Connection database
-cnx = mysql.connector.connect(
-    host=app.config["MYSQL_HOST"],         
-    user=app.config["MYSQL_USER"],         
-    password=app.config["MYSQL_PASSWORD"], 
-    database=app.config["MYSQL_DB"],        
-    charset='utf8mb4',                       
-    collation='utf8mb4_unicode_ci'         
+# Conexión usando variables de entorno (más seguro para Render)
+cnx = psycopg2.connect(
+    host=os.environ.get("DB_HOST"),
+    port=os.environ.get("DB_PORT"),
+    database=os.environ.get("DB_NAME"),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD")
 )
-
-# Create table database
-cursor = cnx.cursor()
-query = """
-CREATE TABLE IF NOT EXISTS control_laboratorios_sistemas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_registro DATETIME,
-    identificador_laboratorio VARCHAR(255),
-    nombre_docente VARCHAR(255),
-    correo_electronico VARCHAR(255),
-    programa VARCHAR(255),
-    hora_ingreso TIME,
-    hora_salida TIME,
-    observaciones TEXT,
-    respuesta_incidencias TEXT
-)
-"""
-cursor.execute(query)
-cnx.commit()
-
-# Create table database
-cursor = cnx.cursor()
-query = """
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    hash VARCHAR(255) NOT NULL
-)
-"""
-cursor.execute(query)
-cnx.commit()
 
 # Define routes
 @app.route("/")
@@ -121,19 +82,19 @@ def login_admin():
         input_password = request.form.get("password") 
         # Validate field input
         if not input_username:
-            return render_template("login.html", messager=1) 
+            return render_template("login.html", message=1) 
         elif not input_password:
-            return render_template("login.html", messager=2) 
+            return render_template("login.html", message=2) 
         # Create cursor to return dictionary 
-        cursor = cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute('SELECT * FROM users WHERE username = %s', (input_username,))
         user = cursor.fetchone()
         # Validate credencials user
         if user is None or not check_password_hash(user["hash"], input_password):
-            return render_template("login.html", messager=3)
+            return render_template("login.html", message=3)
         session["user_id"] = user["id"] 
         return redirect("/admin") 
-    return render_template("/login.html")
+    return render_template("login.html")
 
 @app.route("/goback")
 @login_required
@@ -214,23 +175,24 @@ def register():
         input_confirmation = request.form.get("confirmation")
         # Validate data user
         if not input_username:
-            return render_template("register.html", messager=1)
+            return render_template("register.html", message=1)
         elif not input_password:
-            return render_template("register.html", messager=2)
+            return render_template("register.html", message=2)
         elif not input_confirmation:
-            return render_template("register.html", messager=4)
+            return render_template("register.html", message=3)
         elif input_password != input_confirmation:
-            return render_template("register.html", messager=3)
-        # Create cursor database
-        cursor = cnx.cursor()
-        cursor.execute('SELECT username FROM users WHERE username = %s', (input_username,))
+            return render_template("register.html", message=4)
+        # Check if the username already exists
+        cursor = cnx.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute('SELECT * FROM users WHERE username = %s', (input_username,))
         if cursor.fetchone():
-            return render_template("register.html", messager=5)
+            return render_template("register.html", message=5)
         # Generate hashed password
         hash_password = generate_password_hash(input_password, method='pbkdf2:sha256', salt_length=8)
-        cursor.execute('INSERT INTO users (username, hash) VALUES (%s, %s)', (input_username, hash_password))
+        cursor.execute('INSERT INTO users (username, hash) VALUES (%s, %s) RETURNING id', (input_username, hash_password))
+        result = cursor.fetchone()
+        new_user_id = result['id'] if result and 'id' in result else None
         cnx.commit()
-        new_user_id = cursor.lastrowid
         # Saving id user
         session["user_id"] = new_user_id
         flash(f"Usuario registrado como {input_username}")
