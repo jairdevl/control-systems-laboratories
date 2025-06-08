@@ -1,7 +1,6 @@
 <VirtualHost *:80>
     # Correo del administrador del servidor
     ServerAdmin whoami@172.17.2.131
-
     # Configuración del proceso WSGI para la aplicación
     WSGIDaemonProcess system_laboratory_control python-home=/var/www/system-laboratory-control/venv python-path=/var/www/system-laboratory-control
     WSGIProcessGroup system_laboratory_control
