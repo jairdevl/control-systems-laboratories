@@ -167,6 +167,7 @@ def delete(id):
     return redirect(url_for('admin_data'))
 
 @app.route("/register", methods=["GET", "POST"])
+@login_required
 def register():
     if request.method == "POST":
         # Get data user
