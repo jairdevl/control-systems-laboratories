@@ -15,6 +15,25 @@
 .header a:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 640px) {
+    .header {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px;
+    }
+    .header img {
+        width: 70px !important;
+        height: 70px !important;
+        margin: 0 !important;
+    }
+    .header h1 {
+        font-size: 16px !important;
+        text-align: center;
+        margin: 0 !important;
+    }
+}
+
 table {
     width: 110%;
     margin-left: 0px;

@@ -3,13 +3,16 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
 from datetime import datetime
-import psycopg2
+from dotenv import load_dotenv
 import psycopg2.extras
 from io import BytesIO
 import pandas as pd
+import psycopg2
 import secrets
 import re
 import os
+
+load_dotenv()
 
 # New instance Flask
 app = Flask(__name__)
@@ -17,7 +20,7 @@ app = Flask(__name__)
 # Direct configuration for PostgreSQL (Supabase)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 
-# Conexión usando variables de entorno (más seguro para Render)
+# Secure connection using environment variables
 cnx = psycopg2.connect(
     host=os.environ.get("DB_HOST"),
     port=os.environ.get("DB_PORT"),
