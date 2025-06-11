@@ -2,12 +2,14 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
+from email.mime.text import MIMEText
 from datetime import datetime
 from dotenv import load_dotenv
 import psycopg2.extras
 from io import BytesIO
 import pandas as pd
 import psycopg2
+import smtplib
 import secrets
 import re
 import os
@@ -43,11 +45,11 @@ def add_data():
         'programa': request.form.get('programa'),
         'hora_ingreso': request.form.get('hora_ingreso'),
         'hora_salida': request.form.get('hora_salida'),
-        'observaciones': request.form.get('observaciones')
+        'observacion': request.form.get('observacion')
     }
     try:
         # Get form data
-        fecha_registro = datetime.now().strftime('%Y-%m-%d')
+        fecha_registro = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         # Form fields validation empty
         if not all(form_data.values()):
             flash("Todos los campos son obligatorios.", category='warning')
@@ -64,7 +66,7 @@ def add_data():
         # Save data to database
         cursor = cnx.cursor()
         query = """
-        INSERT INTO control_laboratorios_sistemas (fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones)
+        INSERT INTO control_laboratorios_sistemas (fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observacion)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (fecha_registro, *form_data.values()))
@@ -110,7 +112,7 @@ def goback():
 def admin_data():
     cursor = cnx.cursor()
     # Select table database
-    cursor.execute('SELECT * FROM control_laboratorios_sistemas')
+    cursor.execute('SELECT * FROM control_laboratorios_sistemas ORDER BY fecha_registro DESC')
     data = cursor.fetchall()
     return render_template("/admin.html", data = data)
 
@@ -124,11 +126,21 @@ def get_data(id):
     data = cursor.fetchall()
     return render_template("edit.html", id = data[0])
 
-@app.route("/update/<id>", methods = ['POST'])
+def normalize_incidencia(value):
+    """
+    Normalize the value for comparison:
+    - Treat None, empty strings, and the string 'none' (case-insensitive) as equivalent ('').
+    """
+    if value is None:
+        return ''
+    value = str(value).strip()
+    return '' if value.lower() == 'none' else value
+
+@app.route("/update/<id>", methods=['POST'])
 @login_required
 def update_data(id):
     if request.method == 'POST':
-        # Get updated form data
+        # Get updated form data from the request
         fecha_registro = request.form['fecha_registro']
         identificador_laboratorio = request.form['identificador_laboratorio']
         nombre_docente = request.form['nombre_docente']
@@ -136,10 +148,21 @@ def update_data(id):
         programa = request.form["programa"]
         hora_ingreso = request.form['hora_ingreso']
         hora_salida = request.form['hora_salida']
-        observaciones = request.form['observaciones']
-        respuesta_incidencias = request.form['respuesta_incidencias']
-        # Update data in database
+        observacion = request.form['observacion']
+        respuesta_incidencia = request.form['respuesta_incidencia']
+
+        # Create a new database cursor
         cursor = cnx.cursor()
+
+        # Get the previous value of 'respuesta_incidencia' from the database
+        cursor.execute("SELECT respuesta_incidencia FROM control_laboratorios_sistemas WHERE id = %s", (id,))
+        resultado = cursor.fetchone()
+        respuesta_incidencia_anterior = resultado[0] if resultado else None
+
+        # Prepare the value to be stored in the database (None if empty or only spaces)
+        respuesta_incidencia_db = respuesta_incidencia if respuesta_incidencia and str(respuesta_incidencia).strip() else None
+
+        # Update all fields in the database
         query = """
             UPDATE control_laboratorios_sistemas
             SET fecha_registro = %s,
@@ -149,16 +172,40 @@ def update_data(id):
                 programa = %s,
                 hora_ingreso = %s,
                 hora_salida = %s,
-                observaciones = %s,
-                respuesta_incidencias = %s
+                observacion = %s,
+                respuesta_incidencia = %s
             WHERE id = %s
-            """
-        # Run SQL query
-        cursor.execute(query, (fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico, programa, hora_ingreso, hora_salida, observaciones, respuesta_incidencias, id))
+        """
+        cursor.execute(query, (
+            fecha_registro, identificador_laboratorio, nombre_docente, correo_electronico,
+            programa, hora_ingreso, hora_salida, observacion, respuesta_incidencia_db, id
+        ))
         cnx.commit()
-        flash('Datos actualizados exitosamente.')
-        return redirect(url_for('admin_data'))
 
+        # Only send email if 'respuesta_incidencias' was actually changed
+        if normalize_incidencia(respuesta_incidencia_anterior) != normalize_incidencia(respuesta_incidencia_db):
+            # Send notification email to the user
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            email_user = os.environ.get("EMAIL_USER")
+            email_pass = os.environ.get("EMAIL_PASS")
+            server.login(email_user, email_pass)
+
+            subject = "Control de Laboratorios de Sistemas"
+            msg = MIMEText(f"Asunto: {subject}\n\nRespuesta incidencia: {respuesta_incidencia_db}")
+            msg["From"] = email_user
+            msg["To"] = correo_electronico
+            msg["Subject"] = subject
+
+            server.sendmail(email_user, correo_electronico, msg.as_string())
+            server.quit()
+            flash("Respuesta de incidencia enviada exitosamente.")
+        else:
+            # No change in 'respuesta_incidencias', just update the data
+            flash('Datos actualizados exitosamente.')
+
+        return redirect(url_for('admin_data'))
+        
 @app.route("/delete/<string:id>")
 @login_required
 def delete(id):
@@ -272,8 +319,10 @@ def generate():
     # Check if the request method is POST
     if request.method == 'POST':
         # Retrieve start and end dates from the form
-        start_end = request.form['start_date']
-        end_date = request.form['end_date']
+        start_end = request.form['start_date'] + " 00:00:00"
+        end_date = request.form['end_date'] + " 23:59:59"
+        print("start_end", start_end)
+        print("end_date", end_date)
         # Store the selected dates in the session for later use
         session['start_date'] = start_end
         session['end_date'] = end_date
@@ -289,6 +338,7 @@ def generate():
     data = cursor.fetchall()
     
     # Render the generate.html template and pass the fetched data to it
+    print(data)
     return render_template("/generate.html", data=data)
 
 @app.route("/download")
@@ -306,9 +356,11 @@ def download():
         )
         cursor.execute(query, (start_date, end_date) if start_date and end_date else ())
         data = cursor.fetchall()
+        # Remove the ID column
+        data = [row[1:] for row in data]
     # Define column names for the Excel file
     columns = [
-        'Item', 'Fecha', 'Laboratorio', 'Nombres',
+        'Fecha', 'Laboratorio', 'Nombres',
         'Correo electrónico', 'Programa',
         'Hora de ingreso', 'Hora de salida',
         'Observaciones', 'Respuesta'
