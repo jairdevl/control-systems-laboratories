@@ -26,7 +26,7 @@ cnx = psycopg2.connect(
     port=os.environ.get("DB_PORT"),
     database=os.environ.get("DB_NAME"),
     user=os.environ.get("DB_USER"),
-    #password=os.environ.get("DB_PASSWORD")
+    password=os.environ.get("DB_PASSWORD")
 )
 
 # Define routes
